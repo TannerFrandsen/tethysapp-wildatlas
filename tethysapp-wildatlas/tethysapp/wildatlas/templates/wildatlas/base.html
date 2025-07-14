@@ -1,0 +1,40 @@
+{% extends "tethys_apps/app_base.html" %}
+
+{% load static tethys %}
+
+{% block title %}{{ tethys_app.name }}{% endblock %}
+
+{% block app_icon %}
+  <img src="{% if 'http' in tethys_app.icon %}{{ tethys_app.icon }}{% else %}{% static tethys_app.icon %}{% endif %}" />
+{% endblock %}
+
+{% block app_title %}<span style="color: black;"><strong>{{ tethys_app.name}}</strong></span>{% endblock %}
+
+{% block app_navigation_items %}
+{% url tethys_app|url:'home' as home_url %}
+<li class="nav-item title">Navigation</li>
+<li class="nav-item"><a class="nav-link{% if request.path == home_url %} active{% endif %}" href="{{ home_url }}">Sightings</a></li>
+{% endblock %}
+
+{% block header_buttons %}
+  {% url tethys_app|url:'home' as home_url %}
+  {% url tethys_app|url:'add_sighting' as add_sighting_url %}
+  {% url tethys_app|url:'list_sightings' as list_sighting_url %}
+  <div class="header-button glyphicon-button">
+    <a href="{{ home_url }}" title="Sightings"><i class="bi bi-map"></i></a>
+  </div>
+{% endblock %}
+
+{% block app_content %}
+{% endblock %}
+
+
+{% block content_dependent_styles %}
+  {{ block.super }}
+  <link href="{% static tethys_app|public:'css/main.css' %}" rel="stylesheet"/>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script src="{% static tethys_app|public:'js/main.js' %}" type="text/javascript"></script>
+{% endblock %}
