@@ -1,0 +1,11 @@
+services:
+  postgis:
+    image: postgis/postgis:17-master
+    container_name: postgis
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
