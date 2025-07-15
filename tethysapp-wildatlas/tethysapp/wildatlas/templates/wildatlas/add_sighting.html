@@ -1,0 +1,128 @@
+{% extends 'wildatlas/base.html' %}
+{% load tethys %}   
+
+{% block app_content %}
+    <h2>Add Animal Sighting</h2>
+    {% if message %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endif %}
+    
+    <form method="post" id="sightingForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="date_time" class="form-label">Date and Time</label>
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <input type="datetime-local" class="form-control" id="date_display" required>
+                    <input type="hidden" name="date_time" id="date_time">
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-outline-secondary" onclick="setSightingTimeNow()" title="Set Current Time">
+                        <i class="bi bi-clock-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-3 align-items-end">
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-secondary" onclick="getLocation()" title="Get Current Location">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </button>
+            </div>
+            <div class="col">
+                <label for="latitude" class="form-label">Latitude</label>
+                <input type="number" step="any" class="form-control" id="latitude" name="latitude" required>
+            </div>
+            <div class="col">
+                <label for="longitude" class="form-label">Longitude</label>
+                <input type="number" step="any" class="form-control" id="longitude" name="longitude" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="animal_type" class="form-label">Animal Type</label>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="animalDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span id="selectedAnimalText">Select an animal</span>
+                </button>
+                <ul class="dropdown-menu w-100" aria-labelledby="animalDropdown">
+                    {% for animal in animals %}
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="#" onclick="selectAnimal({{ animal.id }}, '{{ animal.name }}', '{{ animal.logo_path }}'); return false;">
+                                <img src="{{ animal.logo_path }}" alt="{{ animal.name }} icon" style="width:24px; height:24px; margin-right:8px;">
+                                <span>{{ animal.name }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <input type="hidden" id="animalId" name="animalId" required>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    document.getElementById('latitude').value = position.coords.latitude;
+                    document.getElementById('longitude').value = position.coords.longitude;
+                }, function(error) {
+                    alert('Unable to retrieve your location.');
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
+        // Add selectAnimal function to update dropdown and hidden input
+        function selectAnimal(animalId, animalName, logoPath) {
+            document.getElementById('animalId').value = animalId;
+            document.getElementById('selectedAnimalText').innerHTML = '<img src="' + logoPath + '" alt="' + animalName + ' icon" style="width:24px; height:24px; margin-right:8px;">' + animalName;
+        }
+
+        function setSightingTimeNow() {
+            const now = new Date();
+            document.getElementById('date_display').value = formatToLocalISO8601(now).slice(0, 16)
+        }
+
+        function formatToLocalISO8601(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+
+            // Offset in minutes from UTC
+            const offsetMinutes = date.getTimezoneOffset();
+            const offsetSign = offsetMinutes <= 0 ? '+' : '-';
+            const absOffsetMinutes = Math.abs(offsetMinutes);
+            const offsetHours = String(Math.floor(absOffsetMinutes / 60)).padStart(2, '0');
+            const offsetMins = String(absOffsetMinutes % 60).padStart(2, '0');
+
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMins}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setSightingTimeNow()
+        });
+
+        document.getElementById('sightingForm').addEventListener('submit', (e) => {
+            const visibleInput = document.getElementById('date_display').value;
+            const hiddenInput = document.getElementById('date_time');
+
+            let dateToFormat;
+            if (visibleInput) {
+                // The input type=datetime-local provides a string like "2025-08-07T14:30"
+                // This string has no timezone info, so when we do `new Date(visibleInput)` JS assumes local timezone.
+                dateToFormat = new Date(visibleInput);
+            } else {
+                dateToFormat = new Date();  // fallback to now
+            }
+
+            hiddenInput.value = formatToLocalISO8601(dateToFormat);
+        });
+
+    </script>
+        
+{% endblock %}

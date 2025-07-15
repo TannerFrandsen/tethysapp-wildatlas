@@ -129,6 +129,79 @@ class HomeMap(MapLayout):
         return layer_groups
 
 
+def process_sighting_form(post_data):
+    """
+    Clean and validate form POST data.
+    Returns bool is valid, dict of parsed data, string error message if invalid.
+    """
+    cleaned_data = {}
+    try:
+        dt = parser.isoparse(post_data.get('date_time', ''))
+        cleaned_data['date_time'] = dt.astimezone(timezone.utc)
+    except (ValueError, TypeError):
+        return False, cleaned_data, "Invalid or missing date/time."
+
+    try:
+        cleaned_data['animal_id'] = int(post_data.get('animalId', ''))
+    except (TypeError, ValueError):
+        return False, cleaned_data, "Invalid or missing animal ID."
+
+    try:
+        latitude = float(post_data.get('latitude', ''))
+        longitude = float(post_data.get('longitude', ''))
+    except (TypeError, ValueError):
+        return False, cleaned_data, "Invalid or missing latitude/longitude."
+
+    if not (-90 <= latitude <= 90):
+        return False, cleaned_data, "Latitude must be between -90 and 90."
+    cleaned_data['latitude'] = latitude
+
+    if not (-180 <= longitude <= 180):
+        return False, cleaned_data, "Longitude must be between -180 and 180."
+    cleaned_data['longitude'] = longitude
+
+    return True, cleaned_data, ''
+
+
 def datetime_to_age(date):
     return (datetime.now(timezone.utc) - date).total_seconds() / 3600
 
+
+# Controller for adding a new animal sighting
+@controller(url='sighting/add')
+def add_sighting(request):
+    message = None
+    registered_animals = Animal.all()
+
+    registered_animals.sort(key=lambda x: x.name)
+
+    selectable_animals = []
+    for animal in sorted(registered_animals, key=lambda x: x.name):
+        selectable_animals.append(
+            {
+                'id': animal.id,
+                'name': animal.name,
+                'logo_path': animal.logo_path
+            }
+        )
+
+    if request.method == 'POST':
+        valid, data, error_message = process_sighting_form(request.POST)
+        if not valid:
+            return HttpResponseBadRequest(error_message)
+
+        Sighting.add(
+            animal_id=data['animal_id'],
+            date_time=data['date_time'],
+            latitude=data['latitude'],
+            longitude=data['longitude']
+        )
+        return App.redirect(App.reverse('home'))
+
+    registered_animals.sort(key=lambda x: x.name)
+
+    context = {
+        'message': message,
+        'animals': selectable_animals,
+    }
+    return App.render(request, 'add_sighting.html', context)
