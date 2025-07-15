@@ -1,0 +1,105 @@
+{% extends 'wildatlas/base.html' %}
+{% load tethys %}
+
+{% block app_content %}
+<h2>Past Animal Sightings</h2>
+
+{% if sightings|length > 0  %}
+<div class="alert alert-info" style="margin-bottom: 20px;">
+    <strong>Stats:</strong>
+    Total Sightings: {{ sightings|length }}<br>
+    <p class="formatted-datetime" data-datetime="{{ sightings.0.date_time }}">{{ sighting.date_time }} (~{{sightings.0.age_in_hours}} hours ago)</p>
+</div>
+{% endif %}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Icon</th>
+            <th>Animal Type</th>
+            <th>Date/Time</th>
+            <th>Age</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sighting in sightings %}
+        <tr>
+            <td><img src="{{ sighting.logo_path }}" alt="animal" style="display: block; height: 30px; width: 30px;"></td>
+            <td style="vertical-align:middle;">{{ sighting.name }}</td>
+            <td style="vertical-align:middle;" class="formatted-datetime" data-datetime="{{ sighting.date_time }}">{{ sighting.date_time }}</td>
+            <td style="vertical-align:middle;">~{{sighting.age_in_hours}} hours ago</td>
+            <td style="vertical-align:middle;">{{ sighting.latitude }}</td>
+            <td style="vertical-align:middle;">{{ sighting.longitude }}</td>
+            <td style="vertical-align:middle;"><i onclick="deleteSighting('{{ sighting.id }}')" style="color:red;" class="bi bi-trash-fill" style="cursor:pointer;"></i></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    document.querySelectorAll('.formatted-datetime').forEach(function(td) {
+        const dateString = td.getAttribute('data-datetime');
+        if (dateString) {
+            const dateObj = new Date(dateString);
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            const formatted = dateObj.toLocaleString(undefined, options);
+            td.innerHTML = `${formatted} (~${td.innerHTML.split('~')[1]}`;
+        }
+    });
+    // Format most recent sighting datetime in stats block
+    const recentElem = document.getElementById('most-recent-datetime');
+    if (recentElem && recentElem.dataset.datetime) {
+        const dateObj = new Date(recentElem.dataset.datetime);
+        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        recentElem.textContent = dateObj.toLocaleString(undefined, options);
+    }
+
+    document.querySelectorAll('.formatted-datetime').forEach(td => {
+        const datetimeStr = td.getAttribute('data-datetime');
+        if (datetimeStr) {
+            const dt = new Date(datetimeStr); // JS parses ISO8601 string in UTC automatically
+            // Format in user's local timezone (with options if you want)
+            td.textContent = dt.toLocaleString(undefined, { 
+                dateStyle: 'medium', 
+                timeStyle: 'short' 
+            });
+        }
+    });
+    
+    function deleteSighting(sightingId) {
+        if (!confirm('Are you sure you want to delete this sighting?')) return;
+        fetch(`/sighting/delete/${sightingId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to delete sighting.');
+            }
+        });
+    }
+    // Helper to get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
+{% endblock %}

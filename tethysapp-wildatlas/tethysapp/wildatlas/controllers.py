@@ -205,3 +205,36 @@ def add_sighting(request):
         'animals': selectable_animals,
     }
     return App.render(request, 'add_sighting.html', context)
+
+
+@controller(url='sighting/list')
+def list_sightings(request):
+    sightings = Sighting.all()
+    sightings_data = []
+    for sighting in sightings:
+        sighting_age = datetime_to_age(sighting.date_time)
+        sightings_data.append({
+            'id': sighting.id,
+            'date_time': sighting.date_time.isoformat(),
+            'age_in_hours': f'{sighting_age:.0f}',
+            'latitude': sighting.latitude,
+            'longitude': sighting.longitude,
+            'name': sighting.animal.name,
+            'logo_path': sighting.animal.logo_path
+        })
+    sightings_data.sort(key=lambda x: x['date_time'], reverse=True)
+    context = {
+        'sightings': sightings_data
+    }
+    return App.render(request, 'list_sightings.html', context)
+
+
+@api_view(['DELETE'])
+@controller(url='sighting/delete/{sighting_id}', methods=['POST'])
+@authentication_classes((TokenAuthentication,))
+def delete_sighting_view(request, sighting_id):
+    if request.method == 'POST':
+        Sighting.delete(sighting_id)
+        return App.redirect(App.reverse('list_sightings'))
+
+    return App.redirect(App.reverse('list_sightings'))

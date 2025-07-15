@@ -13,9 +13,11 @@
 {% block app_navigation_items %}
 {% url tethys_app|url:'home' as home_url %}
 {% url tethys_app|url:'add_sighting' as add_sighting_url %}
+{% url tethys_app|url:'list_sightings' as list_sightings_url %}
 <li class="nav-item title">Navigation</li>
 <li class="nav-item"><a class="nav-link{% if request.path == home_url %} active{% endif %}" href="{{ home_url }}">Sightings</a></li>
 <li class="nav-item"><a class="nav-link{% if request.path == add_sighting_url %} active{% endif %}" href="{{ add_sighting_url }}">Add a Sighting</a></li>
+<li class="nav-item"><a class="nav-link{% if request.path == list_sighting_url %} active{% endif %}" href="{{ list_sightings_url }}">List all Sightings</a></li>
 {% endblock %}
 
 {% block header_buttons %}
@@ -27,6 +29,9 @@
   </div>
   <div class="header-button glyphicon-button">
     <a href="{{ add_sighting_url }}" title="Add Sighting"><i class="bi bi-plus-circle"></i></a>
+  </div>
+  <div class="header-button glyphicon-button">
+    <a href="{{ list_sighting_url }}" title="List Sightings"><i class="bi bi-pen"></i></a>
   </div>
 {% endblock %}
 
