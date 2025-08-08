@@ -71,7 +71,7 @@
     
     function deleteSighting(sightingId) {
         if (!confirm('Are you sure you want to delete this sighting?')) return;
-        fetch(`/sighting/delete/${sightingId}/`, {
+        fetch(`/apps/wildatlas/sighting/delete/${sightingId}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
