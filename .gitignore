@@ -11,3 +11,4 @@
 services.yml
 
 tethysapp-wildatlas/.env
+tethysapp-wildatlas/tethysapp/wildatlas/resources/*.geojson
