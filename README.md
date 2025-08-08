@@ -1,5 +1,5 @@
-# Wild Atlas
-- [Wild Atlas](#wild-atlas)
+# WildAtlas
+- [WildAtlas](#wildatlas)
 - [Purpose](#purpose)
   - [Features](#features)
   - [Views](#views)
@@ -11,14 +11,15 @@
   - [Testing](#testing)
 
 # Purpose
+
 - Wild Atlas is an interactive wildlife tracker Tethys application. It allows users to log, view, and manage animal sightings on a map, with support for custom animal icons and geospatial data.
-- This was developed in part for the Tethys Summit 2025.
+- This was developed, in part, for the Tethys Summit 2025.
 
 ## Features
 - Add new animal sightings with date, time, location, and animal type.
 - View all past sightings in a sorted table.
 - Interactive map displaying animal sightings with custom icons.
-- Dynamic starting map extents based on all entered sightings.
+- Dynamic starting map fitted to include all entered sightings.
 - Manage animal types and their associated icons.
 - Persistent storage using a PostGIS-enabled PostgreSQL database.
 - REST API endpoint for deleting sightings (with token authentication).
@@ -32,6 +33,8 @@
 ## Roadmap
 - [X] Convert Animal lookup and storage information into ID's 
 - [X] Increase Input validation.
+- [ ] User should not be able to turn off the map.
+- [ ] Add AnimalId form validation
 - [ ] Automated Testing
 - [ ] Streamline the install and setup documentation.
 - [ ] Allow random sighting generation to be configurable.
@@ -75,3 +78,7 @@ tethys install -d
 
 ## Testing
 - TODO
+
+<p align="center">
+  <img src="tethysapp-wildatlas/tethysapp/wildatlas/public/images/icon_light.svg" style="vertical-align: middle;" fill='#ffffff' alt="Logo" />
+</p>

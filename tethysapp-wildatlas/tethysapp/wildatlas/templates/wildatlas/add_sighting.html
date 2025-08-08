@@ -1,12 +1,22 @@
 {% extends 'wildatlas/base.html' %}
 {% load tethys %}   
 
+{% block flash %}
+{% if messages %}
+    <div class="flash-messages">
+    {% for message in messages %}
+        <div class="alert alert-{{ message.category }} alert-dismissible fade show mx-auto" role="alert">
+        {{ message.text }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}
+
 {% block app_content %}
     <h2>Add Animal Sighting</h2>
-    {% if message %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endif %}
-    
+
     <form method="post" id="sightingForm" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
@@ -14,6 +24,7 @@
             <div class="row g-2 align-items-center">
                 <div class="col">
                     <input type="datetime-local" class="form-control" id="date_display" required>
+                    <div id="date_error" class="text-danger small" style="display:none;"></div>
                     <input type="hidden" name="date_time" id="date_time">
                 </div>
                 <div class="col-auto">
@@ -31,11 +42,13 @@
             </div>
             <div class="col">
                 <label for="latitude" class="form-label">Latitude</label>
-                <input type="number" step="any" class="form-control" id="latitude" name="latitude" required>
+                <input type="number" step="any" class="form-control" id="latitude" name="latitude" value=0 required>
+                <div id="lat_error" class="text-danger small" style="display:none;"></div>
             </div>
             <div class="col">
                 <label for="longitude" class="form-label">Longitude</label>
-                <input type="number" step="any" class="form-control" id="longitude" name="longitude" required>
+                <input type="number" step="any" class="form-control" id="longitude" name="longitude" value=0 required>
+                <div id="lon_error" class="text-danger small" style="display:none;"></div>
             </div>
         </div>
         <div class="mb-3">
@@ -61,29 +74,7 @@
     </form>
 
     <script>
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    document.getElementById('latitude').value = position.coords.latitude;
-                    document.getElementById('longitude').value = position.coords.longitude;
-                }, function(error) {
-                    alert('Unable to retrieve your location.');
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
-            }
-        }
-
-        // Add selectAnimal function to update dropdown and hidden input
-        function selectAnimal(animalId, animalName, logoPath) {
-            document.getElementById('animalId').value = animalId;
-            document.getElementById('selectedAnimalText').innerHTML = '<img src="' + logoPath + '" alt="' + animalName + ' icon" style="width:24px; height:24px; margin-right:8px;">' + animalName;
-        }
-
-        function setSightingTimeNow() {
-            const now = new Date();
-            document.getElementById('date_display').value = formatToLocalISO8601(now).slice(0, 16)
-        }
+        // ---- Utility Functions ----
 
         function formatToLocalISO8601(date) {
             const year = date.getFullYear();
@@ -93,7 +84,6 @@
             const minutes = String(date.getMinutes()).padStart(2, '0');
             const seconds = String(date.getSeconds()).padStart(2, '0');
 
-            // Offset in minutes from UTC
             const offsetMinutes = date.getTimezoneOffset();
             const offsetSign = offsetMinutes <= 0 ? '+' : '-';
             const absOffsetMinutes = Math.abs(offsetMinutes);
@@ -103,26 +93,127 @@
             return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMins}`;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            setSightingTimeNow()
-        });
+        // ---- DOM Elements ----
+        const dateInput = document.getElementById('date_display');
+        const dateError = document.getElementById('date_error');
 
+        const latInput = document.getElementById('latitude');
+        const latError = document.getElementById('lat_error');
+
+        const lonInput = document.getElementById('longitude');
+        const lonError = document.getElementById('lon_error');
+
+        const submitBtn = document.querySelector('button[type="submit"]');
+
+        // ---- Validation Functions ----
+
+        function validateDate() {
+            const value = dateInput.value;
+            if (!value) {
+                dateError.style.display = 'none';
+                return false;
+            }
+            const date = new Date(value);
+            const now = new Date();
+            if (date > now) {
+                dateError.textContent = 'Date and time cannot be in the future.';
+                dateError.style.display = 'block';
+                return false;
+            }
+            dateError.style.display = 'none';
+            return true;
+        }
+
+        function validateLat() {
+            const value = parseFloat(latInput.value);
+            if (isNaN(value) || value < -90 || value > 90) {
+                latError.textContent = 'Latitude must be between -90 and 90.';
+                latError.style.display = 'block';
+                return false;
+            }
+            latError.style.display = 'none';
+            return true;
+        }
+
+        function validateLon() {
+            const value = parseFloat(lonInput.value);
+            if (isNaN(value) || value < -180 || value > 180) {
+                lonError.textContent = 'Longitude must be between -180 and 180.';
+                lonError.style.display = 'block';
+                return false;
+            }
+            lonError.style.display = 'none';
+            return true;
+        }
+
+        function validateForm() {
+            const dateValid = validateDate();
+            const latValid = validateLat();
+            const lonValid = validateLon();
+            const valid = dateValid && latValid && lonValid;
+            submitBtn.disabled = !valid;
+            return valid;
+        }
+
+        // ---- Event Listeners ----
+
+        // Real-time validation
+        dateInput.addEventListener('input', validateForm);
+        latInput.addEventListener('input', validateForm);
+        lonInput.addEventListener('input', validateForm);
+
+
+        // On form submit: final validation and set hidden input
         document.getElementById('sightingForm').addEventListener('submit', (e) => {
-            const visibleInput = document.getElementById('date_display').value;
-            const hiddenInput = document.getElementById('date_time');
-
-            let dateToFormat;
-            if (visibleInput) {
-                // The input type=datetime-local provides a string like "2025-08-07T14:30"
-                // This string has no timezone info, so when we do `new Date(visibleInput)` JS assumes local timezone.
-                dateToFormat = new Date(visibleInput);
-            } else {
-                dateToFormat = new Date();  // fallback to now
+            if (!validateForm()) {
+                e.preventDefault();
+                alert('Please fix errors before submitting.');
+                return;
             }
 
-            hiddenInput.value = formatToLocalISO8601(dateToFormat);
+            let dateToFormat;
+            if (dateInput.value) {
+                dateToFormat = new Date(dateInput.value);
+            } else {
+                dateToFormat = new Date();
+            }
+            document.getElementById('date_time').value = formatToLocalISO8601(dateToFormat);
         });
 
+        // ---- Other Functions ----
+
+        function setSightingTimeNow() {
+            const now = new Date();
+            dateInput.value = formatToLocalISO8601(now).slice(0, 16);
+            validateForm();
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    latInput.value = position.coords.latitude;
+                    lonInput.value = position.coords.longitude;
+                    validateForm();
+                }, function() {
+                    alert('Unable to retrieve your location.');
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function selectAnimal(animalId, animalName, logoPath) {
+            document.getElementById('animalId').value = animalId;
+            document.getElementById('selectedAnimalText').innerHTML = `
+                <img src="${logoPath}" alt="${animalName} icon" style="width:24px; height:24px; margin-right:8px;">
+                ${animalName}
+            `;
+        }
+
+        // ---- Initialize ----
+        document.addEventListener('DOMContentLoaded', () => {
+            setSightingTimeNow();
+            validateForm();
+        });
     </script>
-        
 {% endblock %}

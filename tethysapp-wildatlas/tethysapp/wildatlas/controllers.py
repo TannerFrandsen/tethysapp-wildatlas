@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from dateutil import parser
-from django.http import HttpResponseBadRequest
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes
 from tethys_sdk.gizmos import MVView
@@ -129,38 +128,46 @@ class HomeMap(MapLayout):
         return layer_groups
 
 
+# TODO add AnimalId validation
 def process_sighting_form(post_data):
     """
     Clean and validate form POST data.
     Returns bool is valid, dict of parsed data, string error message if invalid.
     """
     cleaned_data = {}
+    error_messages = []
     try:
         dt = parser.isoparse(post_data.get('date_time', ''))
-        cleaned_data['date_time'] = dt.astimezone(timezone.utc)
+        dt_utc = dt.astimezone(timezone.utc)
+
+        if dt_utc > datetime.now(timezone.utc):
+            error_messages.append({'category': "danger", 'text': 'Date/time cannot be in the future.'})
+
+        cleaned_data['date_time'] = dt_utc
     except (ValueError, TypeError):
-        return False, cleaned_data, "Invalid or missing date/time."
+        error_messages.append({'category': "danger", 'text': 'Invalid or missing date/time.'})
 
     try:
         cleaned_data['animal_id'] = int(post_data.get('animalId', ''))
     except (TypeError, ValueError):
-        return False, cleaned_data, "Invalid or missing animal ID."
+        error_messages.append({'category': "danger", 'text': 'Invalid or missing animal ID.'})
 
     try:
         latitude = float(post_data.get('latitude', ''))
         longitude = float(post_data.get('longitude', ''))
     except (TypeError, ValueError):
-        return False, cleaned_data, "Invalid or missing latitude/longitude."
+        error_messages.append({'category': "danger", 'text': 'Invalid or missing latitude/longitude.'})
 
     if not (-90 <= latitude <= 90):
-        return False, cleaned_data, "Latitude must be between -90 and 90."
+        error_messages.append({'category': "danger", 'text': 'Latitude must be between -90 and 90.'})
     cleaned_data['latitude'] = latitude
 
     if not (-180 <= longitude <= 180):
-        return False, cleaned_data, "Longitude must be between -180 and 180."
+        error_messages.append({'category': "danger", 'text': 'Longitude must be between -180 and 180.'})
     cleaned_data['longitude'] = longitude
 
-    return True, cleaned_data, ''
+    valid = len(error_messages) == 0
+    return valid, cleaned_data, error_messages
 
 
 def datetime_to_age(date):
@@ -170,7 +177,6 @@ def datetime_to_age(date):
 # Controller for adding a new animal sighting
 @controller(url='sighting/add')
 def add_sighting(request):
-    message = None
     registered_animals = Animal.all()
 
     registered_animals.sort(key=lambda x: x.name)
@@ -186,22 +192,25 @@ def add_sighting(request):
         )
 
     if request.method == 'POST':
-        valid, data, error_message = process_sighting_form(request.POST)
+        valid, valid_data, flash_messages = process_sighting_form(request.POST)
         if not valid:
-            return HttpResponseBadRequest(error_message)
+            context = {
+                'messages': flash_messages,
+                'animals': selectable_animals,
+            }
+            return App.render(request, 'add_sighting.html', context)
 
         Sighting.add(
-            animal_id=data['animal_id'],
-            date_time=data['date_time'],
-            latitude=data['latitude'],
-            longitude=data['longitude']
+            animal_id=valid_data['animal_id'],
+            date_time=valid_data['date_time'],
+            latitude=valid_data['latitude'],
+            longitude=valid_data['longitude']
         )
         return App.redirect(App.reverse('home'))
 
     registered_animals.sort(key=lambda x: x.name)
 
     context = {
-        'message': message,
         'animals': selectable_animals,
     }
     return App.render(request, 'add_sighting.html', context)

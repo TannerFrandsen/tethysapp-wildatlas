@@ -10,7 +10,7 @@ class App(TethysAppBase):
     description = 'Interactive Wildlife tracker '
     package = 'wildatlas'  # WARNING: Do not change this value
     index = 'home'
-    icon = f'{package}/images/icon.svg'
+    icon = f'{package}/images/icon_dark.svg'
     root_url = 'wildatlas'
     color = '#2980b9'
     tags = ''
