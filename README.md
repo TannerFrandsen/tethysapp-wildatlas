@@ -1,4 +1,16 @@
 # Wild Atlas
+- [Wild Atlas](#wild-atlas)
+- [Purpose](#purpose)
+  - [Features](#features)
+  - [Views](#views)
+  - [Roadmap](#roadmap)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Testing](#testing)
+
+# Purpose
 - Wild Atlas is an interactive wildlife tracker Tethys application. It allows users to log, view, and manage animal sightings on a map, with support for custom animal icons and geospatial data.
 - This was developed in part for the Tethys Summit 2025.
 
@@ -13,25 +25,29 @@
 - Responsive UI with Bootstrap and custom JavaScript for enhanced interactivity.
 
 ## Views
-![Homepage](tethysapp-wildatlas/resources/Home.jpg)
+![Homepage](tethysapp-wildatlas/resources/Pin.jpg)
 ![Show Sightings](tethysapp-wildatlas/resources/ListSightings.jpg)
 ![New Sighting](tethysapp-wildatlas/resources/NewSighting.jpg)
 
-## Getting Started
-### Prerequisites
+## Roadmap
+- [X] Convert Animal lookup and storage information into ID's 
+- [X] Increase Input validation.
+- [ ] Automated Testing
+- [ ] Streamline the install and setup documentation.
+- [ ] Allow random sighting generation to be configurable.
+- [ ] Allow for image upload
+
+# Getting Started
+## Prerequisites
 - Tethys Platform (>=4.0.0)
 - Docker (for running PostGIS, or a local PostgreSQL/PostGIS instance)
 - Python 3.12+
 
-### Installation
+## Installation
 1. Clone the repository
-
 2. Set up / run the database (postgis docker container)
-
 3. Update your Tethys portal database settings if needed.
-
 4. Activate your tethys environment
-
 5. Install tethys application
 
 ``` cmd
@@ -59,11 +75,3 @@ tethys install -d
 
 ## Testing
 - TODO
-
-## Future enhancements
-- [X] Convert Animal lookup and storage information into ID's 
-- [X] Increase Input validation.
-- [ ] Automated Testing
-- [ ] Streamline the install and setup documentation.
-- [ ] Allow random sighting generation to be configurable.
-- [ ] Allow for image upload
