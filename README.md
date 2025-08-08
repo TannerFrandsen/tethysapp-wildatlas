@@ -12,7 +12,10 @@
 - REST API endpoint for deleting sightings (with token authentication).
 - Responsive UI with Bootstrap and custom JavaScript for enhanced interactivity.
 
-
+## Views
+![Homepage](tethysapp-wildatlas/resources/Home.jpg)
+![Show Sightings](tethysapp-wildatlas/resources/ListSightings.jpg)
+![New Sighting](tethysapp-wildatlas/resources/NewSighting.jpg)
 
 ## Getting Started
 ### Prerequisites
