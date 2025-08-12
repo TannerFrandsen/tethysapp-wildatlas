@@ -84,9 +84,10 @@ class HomeMap(MapLayout):
             selectable=True
         )
 
+        app_media_path = App.get_app_media().path
         national_parks_configs = [
             {
-                'path': os.path.join(os.path.dirname(__file__), 'resources', 'YellowstoneNationalPark.geojson'),
+                'path': app_media_path / 'YellowstoneNationalPark.geojson',
                 'name': 'Yellowstone National Park',
                 'title': 'Yellowstone National Park',
                 'variable': 'Yellowstone National Park'
