@@ -17,6 +17,7 @@ from .models import Sighting
 class HomeMap(MapLayout):
     app = App
     base_template = f'{App.package}/base.html'
+    template_name = f'{App.package}/home.html'
     map_title = 'Wild Atlas'
     map_subtitle = 'Animal Sightings'
     basemaps = ['OpenStreetMap', 'ESRI']
