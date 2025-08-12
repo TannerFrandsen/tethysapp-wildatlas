@@ -39,7 +39,7 @@
             <td style="vertical-align:middle;">~{{sighting.age_in_hours}} hours ago</td>
             <td style="vertical-align:middle;">{{ sighting.latitude }}</td>
             <td style="vertical-align:middle;">{{ sighting.longitude }}</td>
-            <td style="vertical-align:middle;"><i onclick="deleteSighting('{{ sighting.id }}')" style="color:red;" class="bi bi-trash-fill" style="cursor:pointer;"></i></td>
+            <td style="vertical-align:middle;"><i onclick="deleteSighting('{% url 'wildatlas:wildatlas_sighting_delete' sighting_id=sighting.id %}')" style="color:red;" class="bi bi-trash-fill" style="cursor:pointer;"></i></td>
         </tr>
         {% endfor %}
     </tbody>

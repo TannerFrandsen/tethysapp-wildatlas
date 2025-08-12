@@ -29,9 +29,9 @@ $(document).ready(function() {
     });
 });
 
-function deleteSighting(sightingId) {
+function deleteSighting(deleteUrl) {
     if (!confirm('Are you sure you want to delete this sighting?')) return;
-    fetch(`/apps/wildatlas/sighting/delete/${sightingId}/`, {
+    fetch(deleteUrl, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),
