@@ -73,7 +73,7 @@ tethys install -d
 ## Usage
 - Map View: The home page displays an interactive map with all animal sightings.
 - Add Sighting: Use the "Add a Sighting" navigation link to log a new animal sighting.
-> :warning: The browser **AND** the operating system location and permission settings need to be configured to allow for the location button to function properly.
+> :warning: The browser **AND** the operating system location and permission settings need to be configured to allow for the location button to function properly. Easiest with Chrome. Brave get's a little touchy about providing location data. 
 - View Sightings: Use the "Sightings" or "List all Sightings" links to view and manage all logged sightings.
 
 ## Testing
