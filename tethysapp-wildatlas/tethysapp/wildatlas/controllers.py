@@ -85,7 +85,6 @@ class HomeMap(MapLayout):
             selectable=True
         )
 
-        breakpoint()
         national_parks_configs = [
             {
                 'path': Path(app_resources.path) / 'YellowstoneNationalPark.geojson',
