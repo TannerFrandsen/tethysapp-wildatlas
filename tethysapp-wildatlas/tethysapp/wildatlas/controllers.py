@@ -6,7 +6,6 @@ from tethys_sdk.gizmos import MVView
 from tethys_sdk.layouts import MapLayout
 from tethys_sdk.routing import controller
 import json
-import os
 from pathlib import Path
 
 from .app import App
@@ -85,6 +84,7 @@ class HomeMap(MapLayout):
             selectable=True
         )
 
+        breakpoint()
         national_parks_configs = [
             {
                 'path': Path(app_resources.path) / 'YellowstoneNationalPark.geojson',
