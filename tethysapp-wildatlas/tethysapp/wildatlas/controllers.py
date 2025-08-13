@@ -6,14 +6,14 @@ from tethys_sdk.gizmos import MVView
 from tethys_sdk.layouts import MapLayout
 from tethys_sdk.routing import controller
 import json
-import os
+from pathlib import Path
 
 from .app import App
 from .models import Animal
 from .models import Sighting
 
 
-@controller(name="home")
+@controller(name="home", app_resources=True)
 class HomeMap(MapLayout):
     app = App
     base_template = f'{App.package}/base.html'
@@ -39,7 +39,7 @@ class HomeMap(MapLayout):
             layers.append(layer)
         return layers
 
-    def compose_layers(self, request, map_view, *args, **kwargs):
+    def compose_layers(self, request, map_view, app_resources, *args, **kwargs):
         sightings = Sighting.all()
         features = []
 
@@ -84,9 +84,10 @@ class HomeMap(MapLayout):
             selectable=True
         )
 
+        breakpoint()
         national_parks_configs = [
             {
-                'path': os.path.join(os.path.dirname(__file__), 'resources', 'YellowstoneNationalPark.geojson'),
+                'path': Path(app_resources.path) / 'YellowstoneNationalPark.geojson',
                 'name': 'Yellowstone National Park',
                 'title': 'Yellowstone National Park',
                 'variable': 'Yellowstone National Park'
@@ -239,7 +240,7 @@ def list_sightings(request):
 
 
 @api_view(['DELETE'])
-@controller(url='sighting/delete/{sighting_id}', methods=['POST'])
+@controller(url='sighting/delete/{sighting_id}', methods=['POST'], name='wildatlas_sighting_delete')
 @authentication_classes((TokenAuthentication,))
 def delete_sighting_view(request, sighting_id):
     if request.method == 'POST':
